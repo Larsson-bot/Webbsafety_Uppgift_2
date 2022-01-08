@@ -126,6 +126,7 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
                 {
                     FileFromUser fileFromUser = new FileFromUser();
                     fileFromUser.UntrustedName = HttpUtility.HtmlEncode(contentDispositionHeaderValue.FileName.Value);
+                    fileFromUser.TimeStamp = DateTime.Now;
                     fileFromUser.Content = await FileHelper.ProcessStreamedFile(section, contentDispositionHeaderValue, ModelState, allowedExtensions, fileSizeLimit);
                     if(fileFromUser.Content.Length == 0)
                     {
@@ -134,7 +135,7 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
                     fileFromUser.FileSize = fileFromUser.Content.Length;
                     await _context.FileFromUser.AddAsync(fileFromUser);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction("Index", "ApplicationFiles");
+                    return RedirectToAction("Index", "FileFromUsers");
                 }
                 section = await reader.ReadNextSectionAsync();
             }

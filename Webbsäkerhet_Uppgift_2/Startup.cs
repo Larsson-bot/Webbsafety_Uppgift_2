@@ -54,7 +54,7 @@ namespace Webbsäkerhet_Uppgift_2
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Comments}/{action=Index}/{id?}");
             });
         }
     }

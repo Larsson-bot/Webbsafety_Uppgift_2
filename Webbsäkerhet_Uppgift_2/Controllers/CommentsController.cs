@@ -17,7 +17,7 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
         public CommentsController(WebSafetyContext context)
         {
             db = context;
-            allowedTag = new List<string>() { "<b>", "</b>" };
+            allowedTag = new List<string>() { "<b>", "</b>" , "<u>", "</u>"};
         }
 
         // GET: Comments

@@ -4,60 +4,72 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1 class="mb-3">Upload And Download Files</h1>
 
 <form asp-action="UploadFile"
-      enctype="multipart/form-data" asp-controller="FileFromUsers" onsubmit="AJAXSubmit(this);return false;"
+      enctype="multipart/form-data" asp-controller="FileFromUsers"
       method="post">
     <dl>
-        <dt>
-            <label for="FileUpload_FormFile">File</label>
-        </dt>
-        <dd>
-            <input id="FileUpload_FormFile" type="file"
-                   name="FileUpload.FormFile" />
+        <dd class="d-flex">      
+            <label  class="folder me-3">
+                <input id="FileUpload_FormFile"  type="file"
+                       name="FileUpload.FormFile" style="display:none" multiple oninput="GetFileName()"  />
+                <i class="fas fa-folder fa-3x"></i>
+                <i class="fas fa-folder-open fa-3x"></i>
+             
+            </label>
+            <p id="FileName">Please select a .jpg or .png file.</p>
         </dd>
     </dl>
-
-    <input class="btn" type="submit" value="Upload" />
-
-    <div style="margin-top:15px">
-        <output name="result"></output>
-    </div>
+    <input class="btn border-dark" type="submit" value="Upload" />
+  
 </form>
 
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TimeStamp)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UntrustedName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FileSize)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TimeStamp)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UntrustedName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FileSize)
-            </td>
-            <td>
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div>No files has been uploaded yet.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.TimeStamp)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.UntrustedName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.FileSize)
+                </th>
+                <th>
+                    Download
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TimeStamp)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UntrustedName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FileSize)
+                    </td>
+                    <td>
+                        <a asp-action="Download" asp-route-id="@item.Id"><i class="fas fa-download"></i></a>
+                    </td>
+                    <td>
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

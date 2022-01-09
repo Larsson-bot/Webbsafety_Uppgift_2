@@ -13,14 +13,16 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Content" class="control-label"></label>
-                <input asp-for="Content" class="form-control" />
+                <label asp-for="Content" class="control-label">Allowed tags are <b>b</b> and <u>u</u>.</label>
+                <div></div>
+                <textarea asp-for="Content" rows="10" cols="80" style="resize: none;"></textarea>
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
+            <div class="mt-1 mb-1"><strong>@Html.ValidationMessage("ErrorDisplay")</strong></div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
-        </form>
+        </form> 
     </div>
 </div>
 

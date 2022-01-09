@@ -23,13 +23,7 @@ namespace Webbsäkerhet_Uppgift_2.Utilities
         // and the official specifications for the file types you wish to add.
         private static readonly Dictionary<string, List<byte[]>> _fileSignature = new Dictionary<string, List<byte[]>>
         {
-            { ".jpeg", new List<byte[]>
-                {
-                    new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 },
-                    new byte[] { 0xFF, 0xD8, 0xFF, 0xE2 },
-                    new byte[] { 0xFF, 0xD8, 0xFF, 0xE3 },
-                }
-            },
+            { ".png", new List<byte[]> { new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } } },
             { ".jpg", new List<byte[]>
                 {
                     new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 },

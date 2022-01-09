@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using System.Threading.Tasks;
-using System.Web;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
+using System;
+using System.Linq;
+using System.Net.Mime;
+using System.Threading.Tasks;
+using System.Web;
 using Webbsäkerhet_Uppgift_2.Models;
 using Webbsäkerhet_Uppgift_2.Utilities;
 
@@ -17,9 +15,8 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
     public class FileFromUsersController : Controller
     {
         private readonly WebSafetyContext _context;
-        private readonly long  fileSizeLimit = 10 * 1048576;
-        private readonly string[] allowedExtensions = { ".jpeg", ".jpg" };
-      
+        private readonly long fileSizeLimit = 10 * 1048576;
+        private readonly string[] allowedExtensions = { ".png", ".jpg" };
 
         public FileFromUsersController(WebSafetyContext context)
         {
@@ -32,23 +29,7 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
             return View(await _context.FileFromUser.ToListAsync());
         }
 
-        // GET: FileFromUsers/Details/5
-        public async Task<IActionResult> Details(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var fileFromUser = await _context.FileFromUser
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (fileFromUser == null)
-            {
-                return NotFound();
-            }
-
-            return View(fileFromUser);
-        }
 
         // GET: FileFromUsers/Create
         public IActionResult Create()
@@ -110,25 +91,25 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
         public async Task<IActionResult> UploadFile()
         {
             var webrequest = HttpContext.Request;
-            
 
-            if(!webrequest.HasFormContentType || !MediaTypeHeaderValue.TryParse(webrequest.ContentType,out var mediaTypeHeaderValue) || string.IsNullOrEmpty(mediaTypeHeaderValue.Boundary.Value))
+            if (!webrequest.HasFormContentType || !MediaTypeHeaderValue.TryParse(webrequest.ContentType, out var mediaTypeHeaderValue) || string.IsNullOrEmpty(mediaTypeHeaderValue.Boundary.Value))
             {
+
                 return new UnsupportedMediaTypeResult();
             }
 
-            var reader = new MultipartReader(mediaTypeHeaderValue.Boundary.Value,webrequest.Body);
+            var reader = new MultipartReader(mediaTypeHeaderValue.Boundary.Value, webrequest.Body);
             var section = await reader.ReadNextSectionAsync();
-            while(section != null)
+            while (section != null)
             {
-                var checkContentDispostionHeader =  ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDispositionHeaderValue);
-                if(checkContentDispostionHeader && contentDispositionHeaderValue.DispositionType.Equals("form-data") && !string.IsNullOrEmpty(contentDispositionHeaderValue.FileName.Value))
+                var checkContentDispostionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDispositionHeaderValue);
+                if (checkContentDispostionHeader && contentDispositionHeaderValue.DispositionType.Equals("form-data") && !string.IsNullOrEmpty(contentDispositionHeaderValue.FileName.Value))
                 {
                     FileFromUser fileFromUser = new FileFromUser();
                     fileFromUser.UntrustedName = HttpUtility.HtmlEncode(contentDispositionHeaderValue.FileName.Value);
                     fileFromUser.TimeStamp = DateTime.Now;
                     fileFromUser.Content = await FileHelper.ProcessStreamedFile(section, contentDispositionHeaderValue, ModelState, allowedExtensions, fileSizeLimit);
-                    if(fileFromUser.Content.Length == 0)
+                    if (fileFromUser.Content.Length == 0)
                     {
                         return RedirectToAction("Index", "FileFromUsers");
                     }
@@ -140,26 +121,21 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
                 section = await reader.ReadNextSectionAsync();
             }
 
+        
             return BadRequest("No files data in the request.");
-            //long size = files.Sum(f => f.Length);
+        }
 
-            //foreach (var formFile in files)
-            //{
-            //    if (formFile.Length > 0)
-            //    {
-            //        var filePath = Path.GetTempFileName();
-
-            //        using (var stream = System.IO.File.Create(filePath))
-            //        {
-            //            await formFile.CopyToAsync(stream);
-            //        }
-            //    }
-            //}
-
-            //// Process uploaded files
-            //// Don't rely on or trust the FileName property without validation.
-
-            //return Ok(new { count = files.Count, size });
+        public async Task<IActionResult> Download(Guid id)
+        {
+            var file = await _context.FileFromUser.FirstOrDefaultAsync(f => f.Id == id);
+            if(file != null)
+            {
+                return File(file.Content, MediaTypeNames.Application.Octet,file.UntrustedName );
+            }
+            else
+            {
+                return NotFound();
+            }
         }
     }
 }

@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Webbsäkerhet_Uppgift_2.Models;
 
 namespace Webbsäkerhet_Uppgift_2.Controllers
@@ -14,10 +12,11 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
     {
         private readonly WebSafetyContext db;
         private List<string> allowedTag { get; set; }
+
         public CommentsController(WebSafetyContext context)
         {
             db = context;
-            allowedTag = new List<string>() { "<b>", "</b>" , "<u>", "</u>"};
+            allowedTag = new List<string>() { "<b>", "</b>", "<u>", "</u>" };
         }
 
         // GET: Comments
@@ -25,8 +24,6 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
         {
             return View(await db.Comment.ToListAsync());
         }
-
-   
 
         // GET: Comments/Create
         public IActionResult Create()
@@ -41,28 +38,31 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Content")] Comment comment)
         {
- 
             if (ModelState.IsValid)
             {
                 comment.Id = Guid.NewGuid();
                 comment.TimeStamp = DateTime.Now;
-                string encodedString = HttpUtility.HtmlEncode(comment.Content);
-                foreach(var tag in allowedTag)
+                if (!string.IsNullOrEmpty(comment.Content))
                 {
-                    string encodedTag = HttpUtility.HtmlEncode(tag);
-                    encodedString = encodedString.Replace(encodedTag, tag);
+                    string encodedString = HttpUtility.HtmlEncode(comment.Content);
+                    foreach (var tag in allowedTag)
+                    {
+                        string encodedTag = HttpUtility.HtmlEncode(tag);
+                        encodedString = encodedString.Replace(encodedTag, tag);
+                    }
+                    comment.Content = encodedString;
+                    db.Add(comment);
+                    await db.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                comment.Content = encodedString;
-                db.Add(comment);
-                await db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                else
+                {
+                    ModelState.AddModelError("ErrorDisplay", "Error: Please write something.");
+                    return View(comment);
+                }
             }
             return View(comment);
         }
-
-  
-
-
 
         // GET: Comments/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
@@ -92,7 +92,5 @@ namespace Webbsäkerhet_Uppgift_2.Controllers
             await db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
-  
     }
 }
